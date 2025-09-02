@@ -1,27 +1,31 @@
-import express from "express";
 import fetch from "node-fetch";
-import cors from "cors";
-import dotenv from "dotenv";
 
-dotenv.config();
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-const app = express();
-app.use(cors()); // Allow cross-origin requests
-app.use(express.json());
+  // Enable CORS for GitHub Pages
+  res.setHeader("Access-Control-Allow-Origin", "https://studora.github.io");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-app.post("/api/ask-gpt", async (req, res) => {
-  const { message } = req.body;
-
-  if (!message) {
-    return res.status(400).json({ error: "Message is required" });
+  if (req.method === "OPTIONS") {
+    return res.status(200).end(); // Preflight request
   }
 
   try {
+    const { message } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
@@ -31,15 +35,10 @@ app.post("/api/ask-gpt", async (req, res) => {
     });
 
     const data = await response.json();
-    res.json(data);
+    res.status(200).json(data);
 
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to get response from OpenAI" });
   }
-});
-
-// Vercel uses this port automatically
-app.listen(process.env.PORT || 3000, () => {
-  console.log("Server is running");
-});
+}
