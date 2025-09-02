@@ -1,16 +1,12 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
+  "functions": {
+    "api/ask-gpt.js": {
+      "memory": 128,
+      "maxDuration": 10
     }
-  ],
+  },
   "routes": [
-    {
-      "src": "/api/ask-gpt",
-      "methods": ["POST"],
-      "dest": "server.js"
-    }
+    { "src": "/api/ask-gpt", "dest": "/api/ask-gpt.js" }
   ]
 }
